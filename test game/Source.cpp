@@ -32,7 +32,7 @@ void SetColor(ConsoleColor text, ConsoleColor background)
 	SetConsoleTextAttribute(hStdOut, (WORD)((background << 4) | text));
 }
 
-static class Dice {
+class Dice {
 
 public:
 	static int getDice(int countDice) {
@@ -60,8 +60,6 @@ public:
 	void setScore(int score) { this->score = score; }
 
 	void IincrimentCount() { this->count++; }
-	//int getCount() { return this->count; }
-	//void setCount(int count) { this->count = count; }
 	void writeFile() {
 		ofstream out("save.txt", std::ios::app);
 		out << "—чЄт: " << score
@@ -72,7 +70,7 @@ public:
 	virtual void RollADie() = 0;
 
 protected: 
-	int score;
+	int score = 0;
 
 private:
 	int count = 0;
@@ -81,6 +79,7 @@ private:
 class Player : public Players {
 
 public:
+	Player() { score = 0; }
 	virtual void RollADie() {
 		IincrimentCount();
 		system("cls");
@@ -127,6 +126,7 @@ private:
 class Enemy : public Players {
 
 public:
+	Enemy() { score = 0; }
 	virtual void RollADie() {
 		IincrimentCount();
 		int Rand = rand() % 33 - 16 + score;
@@ -140,9 +140,6 @@ public:
 		cout << "¬ражеский счЄт " << score << endl;
 		SetColor(White, Black);
 	}
-
-private:
-	int Max(int a, int b) { return a > b ? a : b; }
 };
 
 class Game {
@@ -158,24 +155,29 @@ public:
 		player = *new Player();
 		enemy = *new Enemy();
 	}
+	~Game() {
+		delete &player;
+		delete &enemy;
+	}
 	void start() {
 		while (!isGameStopped) {
 			player.RollADie();
 			enemy.RollADie();
+			cout << endl;
 			system("pause");
 			if (player.getScore() >= 50 && enemy.getScore() >= 50) {
 				if (player.getScore() > enemy.getScore())
 					youWin();
 				else youLose();
-				return;
+				break;
 			}
-			if (player.getScore() >= 50) {
+			else if (player.getScore() >= 50) {
 				youWin();
-				return;
+				break;
 			}
-			if (enemy.getScore() >= 50) {
+			else if (enemy.getScore() >= 50) {
 				youLose();
-				return;
+				break;
 			}
 		}
 	}
@@ -205,7 +207,6 @@ private:
 			player.writeFile();
 			player.setScore(0);
 			enemy.setScore(0);
-			
 			start();
 		}
 	}
@@ -213,7 +214,7 @@ private:
 
 int main() {
 	setlocale(LC_ALL, "rus");
-	srand(time(NULL));
+	srand((unsigned int) time(NULL));
 	SetColor(White, Black);
 	cout << "ƒл€ управлением игрой исопльзуйте только строчки вверх, вниз и Enter\n\n";
 	system("pause");
